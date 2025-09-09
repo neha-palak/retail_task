@@ -1,0 +1,15 @@
+# Do not commit raw data
+data/
+
+# Python
+__pycache__/
+*.pyc
+
+# Notebooks
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# venv if you use it
+venv/
