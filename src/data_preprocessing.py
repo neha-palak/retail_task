@@ -2,30 +2,37 @@ import pandas as pd
 import numpy as np
 import os
 
-def preprocess_data(file_path, target_col="avg_purchase_value"):
-    df = pd.read_csv(file_path)
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+DATA_DIR = os.path.join(BASE_DIR, "data")
+RAW_FILE = os.path.join(DATA_DIR, "Retail Raw.csv")
+PROCESSED_FILE = os.path.join(DATA_DIR, "processed_data.csv")
+FEATURES_FILE = os.path.join(DATA_DIR, "selected_features.txt")
 
-    numeric_df = df.select_dtypes(include=[np.number]).copy()
+os.makedirs(DATA_DIR, exist_ok=True)
 
-    if target_col not in numeric_df.columns:
+df = pd.read_csv(RAW_FILE)
+
+numeric_df = df.select_dtypes(include=[np.number]).copy()
+target_col = "avg_purchase_value"
+if target_col not in numeric_df.columns:
         raise ValueError(f"Target column '{target_col}' must be numeric and present in dataset.")
 
-    # correlations with target
-    corrs = numeric_df.corr()[target_col].drop(target_col)
+# correlations with target
+corrs = numeric_df.corr()[target_col].drop(target_col)
 
-    # top 10 correlations
-    top_features = corrs.abs().sort_values(ascending=False).head(10).index.tolist()
+# top 10 correlations
+top_features = corrs.abs().sort_values(ascending=False).head(10).index.tolist()
 
-    # Prepare X and y
-    X = numeric_df[top_features].values
-    y = numeric_df[target_col].values
+df = df[top_features + [target_col]] 
 
-    return X, y, top_features
+df.to_csv(PROCESSED_FILE, index=False)
 
-if __name__ == "__main__":
-    BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-    DATA_FILE = os.path.join(BASE_DIR, "data", "Retail Raw.csv")
-    X, y, feats = preprocess_data(DATA_FILE)
-    print("Preprocessing complete.")
-    print("Top 10 features used:", feats)
-    print("Feature shape:", X.shape, "Target shape:", y.shape)
+with open(FEATURES_FILE, "w") as f:
+    f.write("Top 10 selected numeric features:\n")
+    for feat in top_features:
+        f.write(f"{feat}\n")
+
+print(f"Processed data saved to {PROCESSED_FILE}")
+print(f"Selected features saved to {FEATURES_FILE}")
+print(f"Shape of processed data: {df.shape}")
+print("Top 10 numeric features:", top_features)
