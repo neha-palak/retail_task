@@ -66,19 +66,14 @@ def evaluate(X, y, theta):
     r2 = 1 - ss_res / ss_tot
     return mse, rmse, r2
 
-# ----------------------------
-# Main
-# ----------------------------
+
 if __name__ == "__main__":
-    # Load your processed Retail dataset
-    df = pd.read_csv("../data/processed_data.csv")  # adjust path if needed
+    df = pd.read_csv("../data/processed_data.csv")
     target_col = "avg_purchase_value"
 
-    # Only numeric columns
     X = df.drop(columns=[target_col]).select_dtypes(include=[np.number]).values
     y = df[target_col].values
 
-    # ---------- Train/Test Split ----------
     np.random.seed(42)
     indices = np.random.permutation(len(X))
     split = int(0.8 * len(X))
@@ -114,7 +109,7 @@ if __name__ == "__main__":
     with open(os.path.join(MODELS_DIR, "regression_model4.pkl"), "wb") as f:
         pickle.dump(theta_lasso, f)
 
-    # ---------- Evaluate on Test Data ----------
+    # Evaluate on Test Data
     mse1, rmse1, r21 = evaluate(X_test, y_test, theta_lin)
     X_poly_test = polynomial_features(X_test, degree=2)
     mse2, rmse2, r22 = evaluate(X_poly_test, y_test, theta_poly)
@@ -135,7 +130,6 @@ if __name__ == "__main__":
     with open(os.path.join(MODELS_DIR, "regression_model_final.pkl"), "wb") as f:
         pickle.dump(best_theta, f)
 
-    # Save metrics in exact format
     metrics_path = os.path.join(RESULTS_DIR, "train_metrics.txt")
     with open(metrics_path, "w") as f:
         f.write("Regression Metrics:\n")
@@ -145,7 +139,6 @@ if __name__ == "__main__":
 
     print("Models trained and saved. Best:", best[1], "R² =", best[0])
 
-    # Print metrics
     print("Regression Metrics:")
     print(f"Mean Squared Error (MSE): {best_mse:.2f}")
     print(f"Root Mean Squared Error (RMSE): {best_rmse:.2f}")
