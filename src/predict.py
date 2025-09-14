@@ -1,9 +1,13 @@
-# src/train_models.py
+
+
 
 import numpy as np
 import pickle
 import os
 import pandas as pd
+from data_preprocessing import preprocess_data
+from train_model import add_bias, polynomial_features, evaluate, evaluate
+
 
 print("Columns in dataset:", df.columns.tolist())
 print("Shape of X:", X.shape)
