@@ -71,13 +71,6 @@ if __name__ == "__main__":
     X = df.drop(columns=[target_col]).select_dtypes(include=[np.number]).values
     y = df[target_col].values
 
-    np.random.seed(42)
-    indices = np.random.permutation(len(X))
-    split = int(0.8 * len(X))
-    train_idx, test_idx = indices[:split], indices[split:]
-    X_train, X_test = X[train_idx], X[test_idx]
-    y_train, y_test = y[train_idx], y[test_idx]
-
     BASE_DIR = os.path.dirname(os.path.dirname(__file__))  # project root
     MODELS_DIR = os.path.join(BASE_DIR, "models")
     RESULTS_DIR = os.path.join(BASE_DIR, "results")
@@ -85,33 +78,33 @@ if __name__ == "__main__":
     os.makedirs(RESULTS_DIR, exist_ok=True)
 
     # Linear Regression
-    theta_lin = linear_regression(X_train, y_train)
+    theta_lin = linear_regression(X, y)
     with open(os.path.join(MODELS_DIR, "regression_model1.pkl"), "wb") as f:
         pickle.dump(theta_lin, f)
 
     # Polynomial Regression
-    X_poly_train = polynomial_features(X_train, degree=2)
-    theta_poly = linear_regression(X_poly_train, y_train)
+    X_poly_train = polynomial_features(X, degree=2)
+    theta_poly = linear_regression(X_poly_train, y)
     with open(os.path.join(MODELS_DIR, "regression_model2.pkl"), "wb") as f:
         pickle.dump((theta_poly, 2), f)
 
     # Ridge Regression
-    theta_ridge = ridge_regression(X_train, y_train, lam=10)
+    theta_ridge = ridge_regression(X, y, lam=10)
     with open(os.path.join(MODELS_DIR, "regression_model3.pkl"), "wb") as f:
         pickle.dump(theta_ridge, f)
 
     # Lasso Regression (using subset because dataset is huge)
-    subset_size = min(50000, X_train.shape[0])
-    theta_lasso = lasso_regression(X_train[:subset_size], y_train[:subset_size], lam=0.1)
+    subset_size = min(50000, X.shape[0])
+    theta_lasso = lasso_regression(X[:subset_size], y[:subset_size], lam=0.1)
     with open(os.path.join(MODELS_DIR, "regression_model4.pkl"), "wb") as f:
         pickle.dump(theta_lasso, f)
 
     # Evaluate on Test Data
-    mse1, rmse1, r21 = evaluate(X_test, y_test, theta_lin)
-    X_poly_test = polynomial_features(X_test, degree=2)
-    mse2, rmse2, r22 = evaluate(X_poly_test, y_test, theta_poly)
-    mse3, rmse3, r23 = evaluate(X_test, y_test, theta_ridge)
-    mse4, rmse4, r24 = evaluate(X_test, y_test, theta_lasso)
+    mse1, rmse1, r21 = evaluate(X, y, theta_lin)
+    X_poly_test = polynomial_features(X, degree=2)
+    mse2, rmse2, r22 = evaluate(X_poly_test, y, theta_poly)
+    mse3, rmse3, r23 = evaluate(X, y, theta_ridge)
+    mse4, rmse4, r24 = evaluate(X, y, theta_lasso)
 
     print("\nModel Evaluation Results:")
     print(f"Linear Regression     -> R² = {r21:.4f}, RMSE = {rmse1:.4f}")
