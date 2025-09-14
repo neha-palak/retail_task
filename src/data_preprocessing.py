@@ -36,6 +36,10 @@ def preprocess_data(path, target_col="avg_purchase_value", save_csv=True):
         print("Dropping large cardinality columns:\n", large)
         df = df.drop(columns=large)
 
+    df= df.drop(["total_sales", "total_transactions", "total_items_purchased","avg_transaction_value", "max_single_purchase_value",
+              "min_single_purchase_value", "transaction_id", "product_id"], axis=1)  # drops synonymous columns to the target variable, to prevent leakage 
+ 
+
     # Fill missing values
     for col in df.columns:
         if df[col].dtype == "object":
@@ -43,28 +47,28 @@ def preprocess_data(path, target_col="avg_purchase_value", save_csv=True):
         else:
             df[col] = df[col].fillna(df[col].mean())
 
-    # Encode 
+    #standardize with z score
+    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    if target_col in numeric_cols:
+       numeric_cols.remove(target_col)
+       df[numeric_cols] = (df[numeric_cols] - df[numeric_cols].mean()) / df[numeric_cols].std()
+
+    # Encoded and they do not need to be standardised
     object_cols = df.select_dtypes(include="object").columns.tolist()
     if object_cols:
-        print("Encoding categorical columns:", object_cols)
-        df = pd.get_dummies(df, columns=object_cols, drop_first=True).astype(int)
+        print("Encoding categorical columns:\n", object_cols)
+        df = pd.get_dummies(df, columns=object_cols, drop_first=True).astype(float)
 
     corr = df.corr(numeric_only=True)[target_col].drop(target_col)
 
-    top_features = corr.abs().sort_values(ascending=False).head(20).index.tolist()
-    bottom_features = corr.abs().sort_values(ascending=True).head(20).index.tolist()
+    top_features = corr.abs().sort_values(ascending=False).head(25).index.tolist()
+    bottom_features = corr.abs().sort_values(ascending=True).head(25).index.tolist()
 
     print("Positively correlated features with target:")
     print(top_features)
 
     print("\n Negatively correlated features with target:")
     print(bottom_features)
-
-    #standardize with z score
-    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-    if target_col in numeric_cols:
-       numeric_cols.remove(target_col)
-       df[numeric_cols] = (df[numeric_cols] - df[numeric_cols].mean()) / df[numeric_cols].std()
 
     selected_columns = [target_col] + top_features + bottom_features
     df = df[selected_columns]
