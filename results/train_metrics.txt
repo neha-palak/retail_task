@@ -1,0 +1,4 @@
+Regression Metrics:
+Mean Squared Error (MSE): 20005.0602
+Root Mean Squared Error (RMSE): 141.4392
+R-squared (R^2): 0.0001
