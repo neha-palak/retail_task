@@ -3,9 +3,6 @@ import numpy as np
 import pickle
 import os
 
-# ----------------------------
-# Regression Functions
-# ----------------------------
 def add_bias(X):
     return np.c_[np.ones((X.shape[0], 1)), X]
 
@@ -87,23 +84,23 @@ if __name__ == "__main__":
     os.makedirs(MODELS_DIR, exist_ok=True)
     os.makedirs(RESULTS_DIR, exist_ok=True)
 
-    # 1. Linear Regression
+    # Linear Regression
     theta_lin = linear_regression(X_train, y_train)
     with open(os.path.join(MODELS_DIR, "regression_model1.pkl"), "wb") as f:
         pickle.dump(theta_lin, f)
 
-    # 2. Polynomial Regression
+    # Polynomial Regression
     X_poly_train = polynomial_features(X_train, degree=2)
     theta_poly = linear_regression(X_poly_train, y_train)
     with open(os.path.join(MODELS_DIR, "regression_model2.pkl"), "wb") as f:
         pickle.dump((theta_poly, 2), f)
 
-    # 3. Ridge Regression
+    # Ridge Regression
     theta_ridge = ridge_regression(X_train, y_train, lam=10)
     with open(os.path.join(MODELS_DIR, "regression_model3.pkl"), "wb") as f:
         pickle.dump(theta_ridge, f)
 
-    # 4. Lasso Regression (use subset if dataset is huge)
+    # Lasso Regression (using subset because dataset is huge)
     subset_size = min(50000, X_train.shape[0])
     theta_lasso = lasso_regression(X_train[:subset_size], y_train[:subset_size], lam=0.1)
     with open(os.path.join(MODELS_DIR, "regression_model4.pkl"), "wb") as f:
@@ -116,30 +113,24 @@ if __name__ == "__main__":
     mse3, rmse3, r23 = evaluate(X_test, y_test, theta_ridge)
     mse4, rmse4, r24 = evaluate(X_test, y_test, theta_lasso)
 
-    # Choose best based on R²
+    print("\nModel Evaluation Results:")
+    print(f"Linear Regression     -> R² = {r21:.4f}, RMSE = {rmse1:.4f}")
+    print(f"Polynomial Regression -> R² = {r22:.4f}, RMSE = {rmse2:.4f}")
+    print(f"Ridge Regression      -> R² = {r23:.4f}, RMSE = {rmse3:.4f}")
+    print(f"Lasso Regression      -> R² = {r24:.4f}, RMSE = {rmse4:.4f}")
+
+    # Choose best based on RMSE
     best_candidates = [
         (r21, "Linear Regression", theta_lin, mse1, rmse1),
         (r22, "Polynomial Regression", theta_poly, mse2, rmse2),
         (r23, "Ridge Regression", theta_ridge, mse3, rmse3),
         (r24, "Lasso Regression", theta_lasso, mse4, rmse4)
     ]
-    best = max(best_candidates, key=lambda x: x[0])
+    best = min(best_candidates, key=lambda x: x[4])
     best_r2, best_name, best_theta, best_mse, best_rmse = best
 
     # Save final model
     with open(os.path.join(MODELS_DIR, "regression_model_final.pkl"), "wb") as f:
         pickle.dump(best_theta, f)
-
-    metrics_path = os.path.join(RESULTS_DIR, "train_metrics.txt")
-    with open(metrics_path, "w") as f:
-        f.write("Regression Metrics:\n")
-        f.write(f"Mean Squared Error (MSE): {best_mse:.2f}\n")
-        f.write(f"Root Mean Squared Error (RMSE): {best_rmse:.2f}\n")
-        f.write(f"R-squared (R²) Score: {best_r2:.2f}\n")
-
-    print("Models trained and saved. Best:", best[1], "R² =", best[0])
-
-    print("Regression Metrics:")
-    print(f"Mean Squared Error (MSE): {best_mse:.2f}")
-    print(f"Root Mean Squared Error (RMSE): {best_rmse:.2f}")
-    print(f"R-squared (R²) Score: {best_r2:.2f}")
+    
+    print(f"\n Best Model: {best[1]} with RMSE = {best[4]:.4f}")
