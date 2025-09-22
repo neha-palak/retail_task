@@ -42,8 +42,10 @@ def main(args):
         X = polynomial_features(X, degree)
     else:
         theta = model
-
+    
     # Predictions
+    degree = 2
+    X = polynomial_features(X, degree)
     X_b = add_bias(X)
     y_pred = X_b @ theta
 
